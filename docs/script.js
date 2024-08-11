@@ -150,6 +150,18 @@ function addHistory(wasteType, confidence) {
     historyItem.className = 'history-item';
     historyItem.innerText = `${timestamp} - ${wasteType} with ${confidence}% confidence`;
     historyElement.appendChild(historyItem);
+
+    // 滚动到最新的历史记录
+    historyElement.scrollTop = historyElement.scrollHeight;
+}
+
+// 重启检测流程
+function resetDetection() {
+    console.log("Restarting detection process");
+    document.getElementById('result').innerText = '';
+    document.getElementById('instructions').innerText = 'Select an item to see instructions.';
+    document.getElementById('webcam').innerHTML = '';
+    startCamera();
 }
 
 // 确保 DOM 加载完成后再添加事件监听器
@@ -157,11 +169,19 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded and parsed");
 
     const captureButton = document.getElementById('capture-btn');
+    const resetButton = document.getElementById('reset-btn');
     if (captureButton) {
         captureButton.addEventListener('click', captureAndClassify);
         console.log("Event listener added successfully");
     } else {
         console.error("capture-btn element not found");
+    }
+
+    if (resetButton) {
+        resetButton.addEventListener('click', resetDetection);
+        console.log("Reset button event listener added successfully");
+    } else {
+        console.error("reset-btn element not found");
     }
 
     init();
