@@ -4,130 +4,18 @@
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Waste Classifier</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-            overflow: hidden;
-        }
-        .container {
-            text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        video, canvas {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: block;
-            height: auto;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Waste Classification</h1>
         <div id="webcam"></div>
         <button id="capture-btn">Capture and Classify Waste</button>
+        <div id="result"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log("DOM fully loaded and parsed");
-
-            const captureButton = document.getElementById('capture-btn');
-            const webcamContainer = document.getElementById('webcam');
-            let videoElement;
-            let stream;
-            let bodyPixModel;
-
-            if (captureButton) {
-                captureButton.addEventListener('click', captureAndClassify);
-                console.log("Event listener added successfully");
-            } else {
-                console.error("capture-btn element not found");
-            }
-
-            async function startCamera() {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: true
-                });
-
-                videoElement = document.createElement('video');
-                videoElement.srcObject = stream;
-                videoElement.play();
-
-                webcamContainer.innerHTML = '';
-                webcamContainer.appendChild(videoElement);
-            }
-
-            async function loadBodyPixModel() {
-                bodyPixModel = await bodyPix.load();
-                console.log("BodyPix model loaded");
-            }
-
-            async function captureAndClassify() {
-                console.log("Button clicked - starting capture and classification");
-
-                const segmentation = await bodyPixModel.segmentPerson(videoElement, {
-                    flipHorizontal: false,
-                    internalResolution: 'medium',
-                    segmentationThreshold: 0.7
-                });
-
-                const canvas = document.createElement('canvas');
-                canvas.width = videoElement.videoWidth;
-                canvas.height = videoElement.videoHeight;
-                const ctx = canvas.getContext('2d');
-
-                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-                // Apply the segmentation mask
-                for (let i = 0; i < imageData.data.length; i += 4) {
-                    if (segmentation.data[i / 4] === 0) {
-                        imageData.data[i + 3] = 0; // Set alpha to 0 (transparent)
-                    }
-                }
-
-                ctx.putImageData(imageData, 0, 0);
-
-                console.log("Image processing complete");
-
-                // Display the processed image
-                webcamContainer.innerHTML = '';
-                webcamContainer.appendChild(canvas);
-            }
-
-            startCamera();
-            loadBodyPixModel();
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
