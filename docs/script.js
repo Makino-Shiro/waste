@@ -31,7 +31,7 @@ async function init() {
 async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
-    
+
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
@@ -39,30 +39,37 @@ async function setupWebcam() {
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: 200,
-            height: 200,
-            facingMode: 'environment' // Prefer rear camera on mobile devices
+            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
         }
     };
 
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    
+    try {
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        await handleStream(currentStream);
+    } catch (error) {
+        console.error("Error accessing media devices.", error);
+    }
+}
+
+async function handleStream(stream) {
+    currentStream = stream;
+
     if (webcam) {
         webcam.stop();
     }
 
+    // Initialize webcam with the stream
     webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-    await webcam.setup({ facingMode: 'environment' }, currentStream); // Setup with the selected camera
-    await webcam.play();
+    await webcam.setup(); // Setup the webcam
+    await webcam.play(); // Start the webcam
+
     isFrozen = false;
     window.requestAnimationFrame(loop);
 
-    // Append the webcam's video element to the DOM
     document.getElementById('webcam').innerHTML = '';
     document.getElementById('webcam').appendChild(webcam.canvas);
-    
-    // Disable the restore button
-    document.getElementById('restore-btn').disabled = true;
+
+    document.getElementById('restore-btn').disabled = true; // Disable the restore button initially
 }
 
 async function loop() {
@@ -84,8 +91,8 @@ async function predict() {
     const wasteType = maxPrediction.className;
     const confidence = (maxPrediction.probability * 100).toFixed(2); // Convert to percentage and format to 2 decimal places
 
-    // Display the predicted waste type and confidence
-    document.getElementById('result').innerText = `This is ${wasteType} with ${confidence}% confidence`;
+    // Display the predicted waste type and confidence with colored text
+    document.getElementById('result').innerHTML = `這是「<span style="color: blue;">${wasteType}</span>」(${confidence}%信賴度)`;
 
     // Update the waste type in the right panel
     document.getElementById('waste-type').innerText = `Waste Type: ${wasteType}`;
