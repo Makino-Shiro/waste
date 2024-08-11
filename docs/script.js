@@ -1,47 +1,24 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM fully loaded and parsed");
 
     const captureButton = document.getElementById('capture-btn');
-    const cameraSelect = document.getElementById('cameraSelect');
     const webcamContainer = document.getElementById('webcam');
+    const resultContainer = document.getElementById('result');
     let videoElement;
-    let model, bodyPixModel;
     let stream;
+    let bodyPixModel;
+    let teachableModel;
 
-    async function init() {
-        const modelURL = './model.json';
-        const metadataURL = './metadata.json';
-
-        // 加载 Teachable Machine 模型和 BodyPix 模型
-        model = await tmImage.load(modelURL, metadataURL);
-        bodyPixModel = await bodyPix.load();
-
-        // 获取可用摄像头并填充选择框
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-        videoDevices.forEach((device, index) => {
-            const option = document.createElement('option');
-            option.value = device.deviceId;
-            option.text = device.label || `Camera ${index + 1}`;
-            cameraSelect.appendChild(option);
-        });
-
-        cameraSelect.onchange = startCamera;
-        await startCamera();
+    if (captureButton) {
+        captureButton.addEventListener('click', captureAndClassify);
+        console.log("Event listener added successfully");
+    } else {
+        console.error("capture-btn element not found");
     }
 
     async function startCamera() {
-        const deviceId = cameraSelect.value;
-
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-
         stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                deviceId: deviceId ? { exact: deviceId } : undefined
-            }
+            video: true
         });
 
         videoElement = document.createElement('video');
@@ -52,17 +29,24 @@ document.addEventListener('DOMContentLoaded', () => {
         webcamContainer.appendChild(videoElement);
     }
 
+    async function loadModels() {
+        bodyPixModel = await bodyPix.load();
+        console.log("BodyPix model loaded");
+
+        const modelURL = './model.json';
+        const metadataURL = './metadata.json';
+        teachableModel = await tmImage.load(modelURL, metadataURL);
+        console.log("Teachable Machine model loaded");
+    }
+
     async function captureAndClassify() {
         console.log("Button clicked - starting capture and classification");
 
-        // Capture the current video frame and process it with BodyPix
         const segmentation = await bodyPixModel.segmentPerson(videoElement, {
             flipHorizontal: false,
             internalResolution: 'medium',
             segmentationThreshold: 0.7
         });
-
-        console.log("Segmentation complete:", segmentation);
 
         const canvas = document.createElement('canvas');
         canvas.width = videoElement.videoWidth;
@@ -89,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         webcamContainer.appendChild(canvas);
 
         // Perform the classification using the processed image
-        const prediction = await model.predict(canvas);
+        const prediction = await teachableModel.predict(canvas);
 
         console.log("Classification results:", prediction);
 
@@ -97,59 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const wasteType = maxPrediction.className;
         const confidence = (maxPrediction.probability * 100).toFixed(2);
 
-        document.getElementById('result').innerText = `This is ${wasteType} with ${confidence}% confidence`;
-
-        displayInstructions(wasteType);
-        addHistory(wasteType, confidence);
+        resultContainer.innerText = `This is ${wasteType} with ${confidence}% confidence`;
     }
 
-    function displayInstructions(wasteType) {
-        let instructions = '';
-
-        switch (wasteType) {
-            case '廚餘':
-                instructions = '廚餘處理方法：請將廚餘分開，放入廚餘桶中。';
-                break;
-            case '電子':
-                instructions = '電子垃圾處理方法：請送到指定的電子垃圾回收點。';
-                break;
-            case '布料':
-                instructions = '布料處理方法：可以考慮捐贈或作為再生資源回收。';
-                break;
-            case '塑料':
-                instructions = '塑料垃圾處理方法：請放入塑料回收桶。';
-                break;
-            case '玻璃':
-                instructions = '玻璃垃圾處理方法：請放入玻璃回收桶。';
-                break;
-            case '紙類':
-                instructions = '紙類垃圾處理方法：請放入紙類回收桶。';
-                break;
-            case '金屬':
-                instructions = '金屬垃圾處理方法：請放入金屬回收桶。';
-                break;
-            default:
-                instructions = '無法提供該垃圾類型的處理方法。';
-        }
-
-        document.getElementById('instructions').innerText = instructions;
-    }
-
-    function addHistory(wasteType, confidence) {
-        const timestamp = new Date().toLocaleString();
-        const historyElement = document.getElementById('history');
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerText = `${timestamp} - ${wasteType} with ${confidence}% confidence`;
-        historyElement.appendChild(historyItem);
-    }
-
-    if (captureButton) {
-        captureButton.addEventListener('click', captureAndClassify);
-        console.log("Event listener added successfully");
-    } else {
-        console.error("capture-btn element not found");
-    }
-
-    init();
+    startCamera();
+    loadModels();
 });
