@@ -151,7 +151,7 @@ function updateHistoryDisplay() {
     });
 }
 
-// 确保 DOM 加载完成后再添加事件监听器
+// 初始化和事件绑定
 document.addEventListener('DOMContentLoaded', () => {
     init();
 
