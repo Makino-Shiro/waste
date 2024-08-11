@@ -155,5 +155,10 @@ function updateHistoryDisplay() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 
-    document.getElementById('capture-btn').addEventListener('click', captureAndClassify);
+    const captureButton = document.getElementById('capture-btn');
+    if (captureButton) {
+        captureButton.addEventListener('click', captureAndClassify);
+    } else {
+        console.error("Capture button not found in the DOM.");
+    }
 });
