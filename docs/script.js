@@ -137,7 +137,7 @@ function displayInstructions(wasteType) {
 
 function addHistory(wasteType, confidence) {
     const timestamp = new Date().toLocaleString();
-    history.push({ wasteType, confidence, timestamp });
+    history.unshift({ wasteType, confidence, timestamp }); // Add new entry at the beginning of the history array
     updateHistoryDisplay();
 }
 
@@ -150,12 +150,12 @@ function updateHistoryDisplay() {
 
     historyElement.innerHTML = ''; // Clear previous history
 
-    // Reverse the history array so that the newest entries appear first
-    history.slice().reverse().forEach((entry, index) => {
+    // Iterate over the history array to display entries, now in the correct order
+    history.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         historyItem.innerText = `${index + 1}. ${entry.timestamp} - ${entry.wasteType} with ${entry.confidence}% confidence`;
-        historyElement.prepend(historyItem); // Use prepend to add the newest entry at the top
+        historyElement.appendChild(historyItem); // Append each entry to the history container
     });
 }
 
