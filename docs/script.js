@@ -141,9 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const captureButton = document.getElementById('capture-btn');
     const resetButton = document.getElementById('reset-btn');
     
-    console.log("captureButton: ", captureButton);
-    console.log("resetButton: ", resetButton);
-    
     if (captureButton) {
         captureButton.addEventListener('click', captureAndClassify);
         console.log("Event listener added successfully for capture-btn");
