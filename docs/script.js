@@ -1,47 +1,104 @@
 const URL = './';
 let model, webcam, maxPredictions;
 let history = [];
+let bodyPixModel;
+let stream;
+let videoElement;
 
+// Initialize the Teachable Machine model and BodyPix model
 async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
 
-    // Load the model and metadata from Teachable Machine
+    // Load the Teachable Machine model and metadata
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // Set up the webcam and start it
-    const flip = true; // Whether to flip the webcam (mirror)
-    webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-    await webcam.setup(); // request access to the webcam
-    await webcam.play();
-    window.requestAnimationFrame(loop);
+    // Load BodyPix model for background removal
+    bodyPixModel = await bodyPix.load();
 
-    // Append the webcam's video element to the DOM
-    document.getElementById('webcam').appendChild(webcam.canvas);
+    // Get the available cameras and populate the camera selection
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    const cameraSelect = document.getElementById('cameraSelect');
+
+    videoDevices.forEach((device, index) => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.text = device.label || `Camera ${index + 1}`;
+        cameraSelect.appendChild(option);
+    });
+
+    cameraSelect.onchange = startCamera;
+    await startCamera();
 }
 
-async function loop() {
-    webcam.update(); // Update the webcam frame
-    window.requestAnimationFrame(loop);
+async function startCamera() {
+    const cameraSelect = document.getElementById('cameraSelect');
+    const deviceId = cameraSelect.value;
+
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            deviceId: deviceId ? { exact: deviceId } : undefined
+        }
+    });
+
+    videoElement = document.createElement('video');
+    videoElement.srcObject = stream;
+    videoElement.play();
+
+    document.getElementById('webcam').innerHTML = '';
+    document.getElementById('webcam').appendChild(videoElement);
+
+    videoElement.onloadeddata = () => {
+        processFrame();
+    };
+}
+
+async function processFrame() {
+    const segmentation = await bodyPixModel.segmentPerson(videoElement, {
+        flipHorizontal: false,
+        internalResolution: 'medium',
+        segmentationThreshold: 0.7
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+
+    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        if (segmentation.data[i / 4] === 0) {
+            imageData.data[i + 3] = 0; // Set alpha to 0 (transparent)
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    document.getElementById('webcam').innerHTML = '';
+    document.getElementById('webcam').appendChild(canvas);
+
+    requestAnimationFrame(processFrame);
 }
 
 async function predict() {
-    // Predict the waste type using the model
-    const prediction = await model.predict(webcam.canvas);
-    
-    // Find the prediction with the highest confidence
+    const canvas = document.querySelector('#webcam canvas');
+    const prediction = await model.predict(canvas);
+
     const maxPrediction = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
     const wasteType = maxPrediction.className;
-    const confidence = (maxPrediction.probability * 100).toFixed(2); // Convert to percentage and format to 2 decimal places
+    const confidence = (maxPrediction.probability * 100).toFixed(2);
 
-    // Display the predicted waste type and confidence
     document.getElementById('result').innerText = `This is ${wasteType} with ${confidence}% confidence`;
 
-    // Display sorting instructions based on the waste type
     displayInstructions(wasteType);
-
-    // Log the prediction in history
     addHistory(wasteType, confidence);
 }
 
@@ -85,13 +142,8 @@ function addHistory(wasteType, confidence) {
 
 function updateHistoryDisplay() {
     const historyElement = document.getElementById('history');
-    if (!historyElement) {
-        console.error("Element with id 'history' not found!");
-        return;
-    }
+    historyElement.innerHTML = '';
 
-    historyElement.innerHTML = ''; // Clear previous history
-    
     history.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
@@ -103,5 +155,4 @@ function updateHistoryDisplay() {
 // Initialize the model and webcam when the page loads
 init();
 
-// Set up the event listener for the classify button
 document.getElementById('classify-btn').addEventListener('click', predict);
