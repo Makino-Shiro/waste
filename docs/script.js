@@ -140,16 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const captureButton = document.getElementById('capture-btn');
     const resetButton = document.getElementById('reset-btn');
+    
+    console.log("captureButton: ", captureButton);
+    console.log("resetButton: ", resetButton);
+    
     if (captureButton) {
         captureButton.addEventListener('click', captureAndClassify);
-        console.log("Event listener added successfully");
+        console.log("Event listener added successfully for capture-btn");
     } else {
         console.error("capture-btn element not found");
     }
 
     if (resetButton) {
         resetButton.addEventListener('click', resetDetection);
-        console.log("Reset button event listener added successfully");
+        console.log("Reset button event listener added successfully for reset-btn");
     } else {
         console.error("reset-btn element not found");
     }
