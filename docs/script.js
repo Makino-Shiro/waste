@@ -82,8 +82,15 @@ async function processFrame() {
     }
 
     ctx.putImageData(imageData, 0, 0);
-    document.getElementById('webcam').innerHTML = '';
-    document.getElementById('webcam').appendChild(canvas);
+
+    // Clear the existing content and append the new canvas
+    const webcamContainer = document.getElementById('webcam');
+    webcamContainer.innerHTML = '';
+    webcamContainer.appendChild(canvas);
+
+    // Ensure the canvas scales correctly within its container
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
 
     requestAnimationFrame(processFrame);
 }
