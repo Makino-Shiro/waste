@@ -151,7 +151,9 @@ function updateHistoryDisplay() {
     });
 }
 
-// Initialize the model and webcam when the page loads
-init();
+// Ensure the DOM is fully loaded before adding event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    init();
 
-document.getElementById('capture-btn').addEventListener('click', captureAndClassify);
+    document.getElementById('capture-btn').addEventListener('click', captureAndClassify);
+});
