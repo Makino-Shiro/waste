@@ -53,13 +53,9 @@ async function startCamera() {
 
     document.getElementById('webcam').innerHTML = '';
     document.getElementById('webcam').appendChild(videoElement);
-
-    videoElement.onloadeddata = () => {
-        processFrame();
-    };
 }
 
-async function processFrame() {
+async function captureAndClassify() {
     const segmentation = await bodyPixModel.segmentPerson(videoElement, {
         flipHorizontal: false,
         internalResolution: 'medium',
@@ -92,11 +88,7 @@ async function processFrame() {
     canvas.style.width = '100%';
     canvas.style.height = 'auto';
 
-    requestAnimationFrame(processFrame);
-}
-
-async function predict() {
-    const canvas = document.querySelector('#webcam canvas');
+    // Perform the classification
     const prediction = await model.predict(canvas);
 
     const maxPrediction = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
@@ -162,4 +154,4 @@ function updateHistoryDisplay() {
 // Initialize the model and webcam when the page loads
 init();
 
-document.getElementById('classify-btn').addEventListener('click', predict);
+document.getElementById('capture-btn').addEventListener('click', captureAndClassify);
