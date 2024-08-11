@@ -1,18 +1,16 @@
 const URL = './';
-let model, bodyPixModel;
+let model, webcam, maxPredictions;
 let stream;
 let videoElement;
 
-// 初始化 Teachable Machine 模型和 BodyPix 模型
+// 初始化 Teachable Machine 模型
 async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
 
     // 加载 Teachable Machine 模型和元数据
     model = await tmImage.load(modelURL, metadataURL);
-
-    // 加载 BodyPix 模型以进行背景移除
-    bodyPixModel = await bodyPix.load();
+    maxPredictions = model.getTotalClasses();
 
     // 获取可用摄像头并填充选择框
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -58,15 +56,6 @@ async function startCamera() {
 async function captureAndClassify() {
     console.log("Button clicked - starting capture and classification");
 
-    // 捕捉当前视频帧并通过 BodyPix 处理
-    const segmentation = await bodyPixModel.segmentPerson(videoElement, {
-        flipHorizontal: false,
-        internalResolution: 'medium',
-        segmentationThreshold: 0.7
-    });
-
-    console.log("Segmentation complete:", segmentation);
-
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
@@ -74,23 +63,7 @@ async function captureAndClassify() {
 
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // 应用分割掩码
-    for (let i = 0; i < imageData.data.length; i += 4) {
-        if (segmentation.data[i / 4] === 0) {
-            imageData.data[i + 3] = 0; // 设置 alpha 为 0（透明）
-        }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-
-    console.log("Image processing complete");
-
-    // 显示处理后的图像
-    const webcamContainer = document.getElementById('webcam');
-    webcamContainer.innerHTML = '';
-    webcamContainer.appendChild(canvas);
+    console.log("Image captured");
 
     // 执行分类
     const prediction = await model.predict(canvas);
@@ -157,6 +130,7 @@ function resetDetection() {
     console.log("Restarting detection process");
     document.getElementById('result').innerText = '';
     document.getElementById('instructions').innerText = 'Select an item to see instructions.';
+    document.getElementById('webcam').innerHTML = '';
     startCamera();
 }
 
