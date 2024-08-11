@@ -1,5 +1,5 @@
 const URL = './';
-let model, webcam, maxPredictions;
+let model, maxPredictions;
 let stream;
 let videoElement;
 
