@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Waste Classifier</title>
-    <style>
-        /* 样式保持不变 */
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -14,8 +12,8 @@
         <label for="cameraSelect">Choose a camera:</label>
         <select id="cameraSelect"></select>
         <div id="webcam"></div>
-        <button id="capture-btn">Capture and Classify Waste</button> <!-- 确保ID是capture-btn -->
-        <button id="reset-btn">Restart Detection</button> <!-- 确保ID是reset-btn -->
+        <button id="capture-btn">Capture and Classify Waste</button>
+        <button id="reset-btn">Restart Detection</button>
         <div id="result"></div>
         <div id="info">
             <h2>How to Sort This Waste:</h2>
@@ -28,7 +26,6 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
     <script src="script.js"></script>
 </body>
 </html>
