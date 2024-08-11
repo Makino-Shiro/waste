@@ -5,19 +5,19 @@ let bodyPixModel;
 let stream;
 let videoElement;
 
-// Initialize the Teachable Machine model and BodyPix model
+// 初始化 Teachable Machine 模型和 BodyPix 模型
 async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
 
-    // Load the Teachable Machine model and metadata
+    // 加载 Teachable Machine 模型和元数据
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // Load BodyPix model for background removal
+    // 加载 BodyPix 模型以进行背景移除
     bodyPixModel = await bodyPix.load();
 
-    // Get the available cameras and populate the camera selection
+    // 获取可用的摄像头并填充选择框
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(device => device.kind === 'videoinput');
     const cameraSelect = document.getElementById('cameraSelect');
@@ -73,22 +73,22 @@ async function captureAndClassify() {
 
     for (let i = 0; i < imageData.data.length; i += 4) {
         if (segmentation.data[i / 4] === 0) {
-            imageData.data[i + 3] = 0; // Set alpha to 0 (transparent)
+            imageData.data[i + 3] = 0; // 设置 alpha 为 0（透明）
         }
     }
 
     ctx.putImageData(imageData, 0, 0);
 
-    // Clear the existing content and append the new canvas
+    // 清空现有内容并追加新的 canvas
     const webcamContainer = document.getElementById('webcam');
     webcamContainer.innerHTML = '';
     webcamContainer.appendChild(canvas);
 
-    // Ensure the canvas scales correctly within its container
+    // 确保 canvas 在容器内正确缩放
     canvas.style.width = '100%';
     canvas.style.height = 'auto';
 
-    // Perform the classification
+    // 执行分类
     const prediction = await model.predict(canvas);
 
     const maxPrediction = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
@@ -151,9 +151,14 @@ function updateHistoryDisplay() {
     });
 }
 
-// Ensure the DOM is fully loaded before adding event listeners
+// 确保 DOM 加载完成后再添加事件监听器
 document.addEventListener('DOMContentLoaded', () => {
     init();
 
-    document.getElementById('capture-btn').addEventListener('click', captureAndClassify);
+    const captureButton = document.getElementById('capture-btn');
+    if (captureButton) {
+        captureButton.addEventListener('click', captureAndClassify);
+    } else {
+        console.error("capture-btn element not found");
+    }
 });
