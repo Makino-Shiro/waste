@@ -6,6 +6,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f4f4f4;
+    overflow: hidden; /* 防止页面超出边界 */
 }
 
 .container {
@@ -23,10 +24,12 @@ h1 {
     color: #333;
 }
 
-video {
+video, canvas {
     width: 100%;
     border-radius: 10px;
     margin-bottom: 10px;
+    display: block;
+    height: auto;
 }
 
 button {
