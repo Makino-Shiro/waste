@@ -17,7 +17,7 @@ async function init() {
     // 加载 BodyPix 模型以进行背景移除
     bodyPixModel = await bodyPix.load();
 
-    // 获取可用的摄像头并填充选择框
+    // 获取可用摄像头并填充选择框
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(device => device.kind === 'videoinput');
     const cameraSelect = document.getElementById('cameraSelect');
@@ -33,6 +33,7 @@ async function init() {
     await startCamera();
 }
 
+// 启动摄像头并显示实时视频
 async function startCamera() {
     const cameraSelect = document.getElementById('cameraSelect');
     const deviceId = cameraSelect.value;
@@ -51,16 +52,23 @@ async function startCamera() {
     videoElement.srcObject = stream;
     videoElement.play();
 
-    document.getElementById('webcam').innerHTML = '';
-    document.getElementById('webcam').appendChild(videoElement);
+    const webcamContainer = document.getElementById('webcam');
+    webcamContainer.innerHTML = '';
+    webcamContainer.appendChild(videoElement);
 }
 
+// 捕捉图像并进行分类
 async function captureAndClassify() {
+    console.log("Button clicked - starting capture and classification");
+
+    // 捕捉当前视频帧并通过 BodyPix 处理
     const segmentation = await bodyPixModel.segmentPerson(videoElement, {
         flipHorizontal: false,
         internalResolution: 'medium',
         segmentationThreshold: 0.7
     });
+
+    console.log("Segmentation complete:", segmentation);
 
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
@@ -71,6 +79,7 @@ async function captureAndClassify() {
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+    // 应用分割掩码
     for (let i = 0; i < imageData.data.length; i += 4) {
         if (segmentation.data[i / 4] === 0) {
             imageData.data[i + 3] = 0; // 设置 alpha 为 0（透明）
@@ -79,17 +88,16 @@ async function captureAndClassify() {
 
     ctx.putImageData(imageData, 0, 0);
 
-    // 清空现有内容并追加新的 canvas
+    console.log("Image processing complete");
+
+    // 显示处理后的图像
     const webcamContainer = document.getElementById('webcam');
     webcamContainer.innerHTML = '';
     webcamContainer.appendChild(canvas);
 
-    // 确保 canvas 在容器内正确缩放
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
-
     // 执行分类
     const prediction = await model.predict(canvas);
+    console.log("Classification results:", prediction);
 
     const maxPrediction = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
     const wasteType = maxPrediction.className;
@@ -101,6 +109,7 @@ async function captureAndClassify() {
     addHistory(wasteType, confidence);
 }
 
+// 显示分类结果的说明
 function displayInstructions(wasteType) {
     let instructions = '';
 
@@ -133,32 +142,27 @@ function displayInstructions(wasteType) {
     document.getElementById('instructions').innerText = instructions;
 }
 
+// 添加分类结果到历史记录
 function addHistory(wasteType, confidence) {
     const timestamp = new Date().toLocaleString();
-    history.push({ wasteType, confidence, timestamp });
-    updateHistoryDisplay();
-}
-
-function updateHistoryDisplay() {
     const historyElement = document.getElementById('history');
-    historyElement.innerHTML = '';
-
-    history.forEach((entry, index) => {
-        const historyItem = document.createElement('div');
-        historyItem.className = 'history-item';
-        historyItem.innerText = `${index + 1}. ${entry.timestamp} - ${entry.wasteType} with ${entry.confidence}% confidence`;
-        historyElement.appendChild(historyItem);
-    });
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    historyItem.innerText = `${timestamp} - ${wasteType} with ${confidence}% confidence`;
+    historyElement.appendChild(historyItem);
 }
 
-// 初始化和事件绑定
+// 确保 DOM 加载完成后再添加事件监听器
 document.addEventListener('DOMContentLoaded', () => {
-    init();
+    console.log("DOM fully loaded and parsed");
 
     const captureButton = document.getElementById('capture-btn');
     if (captureButton) {
         captureButton.addEventListener('click', captureAndClassify);
+        console.log("Event listener added successfully");
     } else {
         console.error("capture-btn element not found");
     }
+
+    init();
 });
