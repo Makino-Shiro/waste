@@ -6,7 +6,6 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f4f4f4;
-    overflow: hidden; /* 防止页面超出边界 */
 }
 
 .container {
@@ -17,19 +16,6 @@ body {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     width: 100%;
-}
-
-h1 {
-    margin-bottom: 20px;
-    color: #333;
-}
-
-video, canvas {
-    width: 100%;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    display: block;
-    height: auto;
 }
 
 button {
@@ -43,37 +29,4 @@ button {
 
 button:hover {
     background-color: #218838;
-}
-
-#result {
-    margin-top: 20px;
-    font-size: 1.2em;
-    color: #333;
-}
-
-#info {
-    margin-top: 30px;
-    text-align: left;
-}
-
-#info h2 {
-    font-size: 1.5em;
-    color: #333;
-}
-
-#instructions {
-    margin-top: 10px;
-    font-size: 1em;
-    color: #555;
-}
-
-#history-container {
-    margin-top: 30px;
-    text-align: left;
-}
-
-.history-item {
-    margin-bottom: 10px;
-    font-size: 0.9em;
-    color: #666;
 }
