@@ -1,9 +1,11 @@
 const URL = './';
-let model, maxPredictions;
+let model, webcam, maxPredictions;
+let history = [];
+let bodyPixModel;
 let stream;
 let videoElement;
 
-// 初始化 Teachable Machine 模型
+// 初始化 Teachable Machine 模型和 BodyPix 模型
 async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
@@ -11,6 +13,9 @@ async function init() {
     // 加载 Teachable Machine 模型和元数据
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
+
+    // 加载 BodyPix 模型以进行背景移除
+    bodyPixModel = await bodyPix.load();
 
     // 获取可用摄像头并填充选择框
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -56,6 +61,15 @@ async function startCamera() {
 async function captureAndClassify() {
     console.log("Button clicked - starting capture and classification");
 
+    // 捕捉当前视频帧并通过 BodyPix 处理
+    const segmentation = await bodyPixModel.segmentPerson(videoElement, {
+        flipHorizontal: false,
+        internalResolution: 'medium',
+        segmentationThreshold: 0.7
+    });
+
+    console.log("Segmentation complete:", segmentation);
+
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
@@ -63,7 +77,23 @@ async function captureAndClassify() {
 
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-    console.log("Image captured");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // 应用分割掩码
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        if (segmentation.data[i / 4] === 0) {
+            imageData.data[i + 3] = 0; // 设置 alpha 为 0（透明）
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    console.log("Image processing complete");
+
+    // 显示处理后的图像
+    const webcamContainer = document.getElementById('webcam');
+    webcamContainer.innerHTML = '';
+    webcamContainer.appendChild(canvas);
 
     // 执行分类
     const prediction = await model.predict(canvas);
@@ -120,18 +150,6 @@ function addHistory(wasteType, confidence) {
     historyItem.className = 'history-item';
     historyItem.innerText = `${timestamp} - ${wasteType} with ${confidence}% confidence`;
     historyElement.appendChild(historyItem);
-
-    // 滚动到最新的历史记录
-    historyElement.scrollTop = historyElement.scrollHeight;
-}
-
-// 重启检测流程
-function resetDetection() {
-    console.log("Restarting detection process");
-    document.getElementById('result').innerText = '';
-    document.getElementById('instructions').innerText = 'Select an item to see instructions.';
-    document.getElementById('webcam').innerHTML = '';
-    startCamera();
 }
 
 // 确保 DOM 加载完成后再添加事件监听器
@@ -139,20 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded and parsed");
 
     const captureButton = document.getElementById('capture-btn');
-    const resetButton = document.getElementById('reset-btn');
-    
     if (captureButton) {
         captureButton.addEventListener('click', captureAndClassify);
-        console.log("Event listener added successfully for capture-btn");
+        console.log("Event listener added successfully");
     } else {
         console.error("capture-btn element not found");
-    }
-
-    if (resetButton) {
-        resetButton.addEventListener('click', resetDetection);
-        console.log("Reset button event listener added successfully for reset-btn");
-    } else {
-        console.error("reset-btn element not found");
     }
 
     init();
