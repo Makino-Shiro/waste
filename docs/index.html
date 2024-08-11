@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Waste Classifier</title>
     <style>
         body {
@@ -28,7 +28,7 @@
             margin-bottom: 20px;
             color: #333;
         }
-        video {
+        video, canvas {
             width: 100%;
             border-radius: 10px;
             margin-bottom: 10px;
@@ -54,6 +54,8 @@
         <div id="webcam"></div>
         <button id="capture-btn">Capture and Classify Waste</button>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log("DOM fully loaded and parsed");
@@ -62,11 +64,10 @@
             const webcamContainer = document.getElementById('webcam');
             let videoElement;
             let stream;
+            let bodyPixModel;
 
             if (captureButton) {
-                captureButton.addEventListener('click', function () {
-                    console.log('Button clicked!');
-                });
+                captureButton.addEventListener('click', captureAndClassify);
                 console.log("Event listener added successfully");
             } else {
                 console.error("capture-btn element not found");
@@ -85,7 +86,47 @@
                 webcamContainer.appendChild(videoElement);
             }
 
+            async function loadBodyPixModel() {
+                bodyPixModel = await bodyPix.load();
+                console.log("BodyPix model loaded");
+            }
+
+            async function captureAndClassify() {
+                console.log("Button clicked - starting capture and classification");
+
+                const segmentation = await bodyPixModel.segmentPerson(videoElement, {
+                    flipHorizontal: false,
+                    internalResolution: 'medium',
+                    segmentationThreshold: 0.7
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Apply the segmentation mask
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    if (segmentation.data[i / 4] === 0) {
+                        imageData.data[i + 3] = 0; // Set alpha to 0 (transparent)
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                console.log("Image processing complete");
+
+                // Display the processed image
+                webcamContainer.innerHTML = '';
+                webcamContainer.appendChild(canvas);
+            }
+
             startCamera();
+            loadBodyPixModel();
         });
     </script>
 </body>
