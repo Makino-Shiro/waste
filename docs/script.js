@@ -1,7 +1,5 @@
 const URL = './';
-let model, webcam, maxPredictions;
-let history = [];
-let bodyPixModel;
+let model, bodyPixModel;
 let stream;
 let videoElement;
 
@@ -12,7 +10,6 @@ async function init() {
 
     // 加载 Teachable Machine 模型和元数据
     model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
 
     // 加载 BodyPix 模型以进行背景移除
     bodyPixModel = await bodyPix.load();
@@ -160,7 +157,6 @@ function resetDetection() {
     console.log("Restarting detection process");
     document.getElementById('result').innerText = '';
     document.getElementById('instructions').innerText = 'Select an item to see instructions.';
-    document.getElementById('webcam').innerHTML = '';
     startCamera();
 }
 
