@@ -28,6 +28,13 @@
             margin-bottom: 20px;
             color: #333;
         }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: block;
+            height: auto;
+        }
         button {
             padding: 10px 20px;
             background-color: #28a745;
@@ -44,6 +51,7 @@
 <body>
     <div class="container">
         <h1>Waste Classification</h1>
+        <div id="webcam"></div>
         <button id="capture-btn">Capture and Classify Waste</button>
     </div>
     <script>
@@ -51,7 +59,9 @@
             console.log("DOM fully loaded and parsed");
 
             const captureButton = document.getElementById('capture-btn');
-            console.log("captureButton:", captureButton); // 检查元素是否成功获取
+            const webcamContainer = document.getElementById('webcam');
+            let videoElement;
+            let stream;
 
             if (captureButton) {
                 captureButton.addEventListener('click', function () {
@@ -61,6 +71,21 @@
             } else {
                 console.error("capture-btn element not found");
             }
+
+            async function startCamera() {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true
+                });
+
+                videoElement = document.createElement('video');
+                videoElement.srcObject = stream;
+                videoElement.play();
+
+                webcamContainer.innerHTML = '';
+                webcamContainer.appendChild(videoElement);
+            }
+
+            startCamera();
         });
     </script>
 </body>
