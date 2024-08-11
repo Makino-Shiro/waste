@@ -28,13 +28,6 @@
             margin-bottom: 20px;
             color: #333;
         }
-        video, canvas {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: block;
-            height: auto;
-        }
         button {
             padding: 10px 20px;
             background-color: #28a745;
@@ -46,55 +39,29 @@
         button:hover {
             background-color: #218838;
         }
-        #result {
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: #333;
-        }
-        #info {
-            margin-top: 30px;
-            text-align: left;
-        }
-        #info h2 {
-            font-size: 1.5em;
-            color: #333;
-        }
-        #instructions {
-            margin-top: 10px;
-            font-size: 1em;
-            color: #555;
-        }
-        #history-container {
-            margin-top: 30px;
-            text-align: left;
-        }
-        .history-item {
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            color: #666;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Waste Classification</h1>
-        <label for="cameraSelect">Choose a camera:</label>
-        <select id="cameraSelect"></select>
-        <div id="webcam"></div>
         <button id="capture-btn">Capture and Classify Waste</button>
-        <div id="result"></div>
-        <div id="info">
-            <h2>How to Sort This Waste:</h2>
-            <p id="instructions">Select an item to see instructions.</p>
-        </div>
-        <div id="history-container">
-            <h2>History</h2>
-            <div id="history"></div>
-        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("DOM fully loaded and parsed");
+
+            const captureButton = document.getElementById('capture-btn');
+            console.log("captureButton:", captureButton); // 检查元素是否成功获取
+
+            if (captureButton) {
+                captureButton.addEventListener('click', function () {
+                    console.log('Button clicked!');
+                });
+                console.log("Event listener added successfully");
+            } else {
+                console.error("capture-btn element not found");
+            }
+        });
+    </script>
 </body>
 </html>
