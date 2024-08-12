@@ -8,11 +8,11 @@ async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
 
-    // Load the model and metadata from Teachable Machine
+    // 從 Teachable Machine 加載模型和元數據
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // List available cameras and allow user to select one
+    // 列出可用的相機並允許用戶選擇
     const videoSelect = document.getElementById('videoSource');
     const devices = await navigator.mediaDevices.enumerateDevices();
     devices.forEach(device => {
@@ -25,7 +25,7 @@ async function init() {
     });
 
     videoSelect.onchange = setupWebcam;
-    await setupWebcam(); // Setup the default camera
+    await setupWebcam(); // 設置默認相機
 }
 
 async function setupWebcam() {
@@ -39,7 +39,7 @@ async function setupWebcam() {
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
+            facingMode: deviceId ? undefined : { ideal: 'environment' } // 使用 'ideal' 設置 facingMode
         }
     };
 
@@ -48,6 +48,7 @@ async function setupWebcam() {
         await handleStream(currentStream);
     } catch (error) {
         console.error("Error accessing media devices.", error);
+        alert("無法訪問相機。請檢查許可權或嘗試使用不同的瀏覽器。");
     }
 }
 
@@ -58,10 +59,10 @@ async function handleStream(stream) {
         webcam.stop();
     }
 
-    // Initialize webcam with the stream
-    webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-    await webcam.setup(); // Setup the webcam
-    await webcam.play(); // Start the webcam
+    // 使用流初始化網頁攝像頭
+    webcam = new tmImage.Webcam(200, 200, true); // 寬度, 高度, 翻轉
+    await webcam.setup(); // 設置攝像頭
+    await webcam.play(); // 啟動攝像頭
 
     isFrozen = false;
     window.requestAnimationFrame(loop);
@@ -69,45 +70,45 @@ async function handleStream(stream) {
     document.getElementById('webcam').innerHTML = '';
     document.getElementById('webcam').appendChild(webcam.canvas);
 
-    document.getElementById('restore-btn').disabled = true; // Disable the restore button initially
+    document.getElementById('restore-btn').disabled = true; // 初始禁用恢復按鈕
 }
 
 async function loop() {
     if (!isFrozen) {
-        webcam.update(); // Update the webcam frame only if not frozen
+        webcam.update(); // 如果未凍結，更新攝像頭畫面
         window.requestAnimationFrame(loop);
     }
 }
 
 async function predict() {
-    isFrozen = true; // Freeze the webcam by stopping the loop
-    document.getElementById('restore-btn').disabled = false; // Enable the restore button
+    isFrozen = true; // 凍結攝像頭畫面
+    document.getElementById('restore-btn').disabled = false; // 啟用恢復按鈕
 
-    // Predict the waste type using the model
+    // 使用模型預測垃圾類型
     const prediction = await model.predict(webcam.canvas);
     
-    // Find the prediction with the highest confidence
+    // 找到信賴度最高的預測
     const maxPrediction = prediction.reduce((prev, current) => (prev.probability > current.probability) ? prev : current);
     const wasteType = maxPrediction.className;
-    const confidence = (maxPrediction.probability * 100).toFixed(2); // Convert to percentage and format to 2 decimal places
+    const confidence = (maxPrediction.probability * 100).toFixed(2); // 轉換為百分比並保留兩位小數
 
-    // Display the predicted waste type and confidence
+    // 顯示預測的垃圾類型和信賴度
     document.getElementById('result').innerHTML = `這是「<span class="highlight">${wasteType}</span>」(${confidence}%信賴度)`;
 
-    // Update the waste type in the right panel
+    // 更新右側面板中的垃圾類型
     document.getElementById('waste-type').innerText = `Waste Type: ${wasteType}`;
 
-    // Display sorting instructions based on the waste type
+    // 根據垃圾類型顯示分類指示
     displayInstructions(wasteType);
 
-    // Log the prediction in history
+    // 記錄預測到歷史記錄中
     addHistory(wasteType, confidence);
 }
 
 function restoreWebcam() {
-    isFrozen = false; // Unfreeze the webcam
-    window.requestAnimationFrame(loop); // Resume the loop
-    document.getElementById('restore-btn').disabled = true; // Disable the restore button
+    isFrozen = false; // 解除攝像頭凍結
+    window.requestAnimationFrame(loop); // 恢復循環
+    document.getElementById('restore-btn').disabled = true; // 禁用恢復按鈕
 }
 
 function displayInstructions(wasteType) {
@@ -202,10 +203,9 @@ function displayInstructions(wasteType) {
     document.getElementById('instructions').innerText = instructions;
 }
 
-
 function addHistory(wasteType, confidence) {
     const timestamp = new Date().toLocaleString();
-    history.unshift({ wasteType, confidence, timestamp }); // Add new entry at the beginning of the history array
+    history.unshift({ wasteType, confidence, timestamp }); // 新的紀錄加在歷史記錄陣列的開頭
     updateHistoryDisplay();
 }
 
@@ -216,20 +216,20 @@ function updateHistoryDisplay() {
         return;
     }
 
-    historyElement.innerHTML = ''; // Clear previous history
+    historyElement.innerHTML = ''; // 清空之前的歷史紀錄
 
-    // Iterate over the history array to display entries, now in the correct order
+    // 遍歷歷史記錄陣列以顯示條目
     history.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         historyItem.innerHTML = `${index + 1}. ${entry.timestamp} - ${entry.wasteType}(${entry.confidence}%信賴度)`;
-        historyElement.appendChild(historyItem); // Append each entry to the history container
+        historyElement.appendChild(historyItem); // 將每個條目附加到歷史容器
     });
 }
 
-// Initialize the model and webcam when the page loads
+// 當頁面加載時初始化模型和攝像頭
 init();
 
-// Set up the event listener for the classify and restore buttons
+// 設置分類和恢復按鈕的事件監聽器
 document.getElementById('classify-btn').addEventListener('click', predict);
 document.getElementById('restore-btn').addEventListener('click', restoreWebcam);
