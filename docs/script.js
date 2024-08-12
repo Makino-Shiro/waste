@@ -42,6 +42,12 @@ async function setupWebcam() {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         console.log("New stream obtained:", currentStream);
 
+        // 检查流是否激活
+        if (!currentStream.active) {
+            console.error("Stream is not active. Aborting setup.");
+            return;
+        }
+
         if (webcam) {
             console.log("Stopping previous webcam...");
             await webcam.stop();
