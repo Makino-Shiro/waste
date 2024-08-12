@@ -182,4 +182,3 @@ init();
 // Set up the event listener for the classify and restore buttons
 document.getElementById('classify-btn').addEventListener('click', predict);
 document.getElementById('restore-btn').addEventListener('click', restoreWebcam);
-，
