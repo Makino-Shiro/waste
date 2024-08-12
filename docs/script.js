@@ -4,72 +4,64 @@ let history = [];
 let currentStream;
 let isFrozen = false;
 
-async function init() {
-    const modelURL = URL + 'model.json';
-    const metadataURL = URL + 'metadata.json';
-
-    // Load the model and metadata from Teachable Machine
-    model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
-
-    // List available cameras and allow user to select one
-    const videoSelect = document.getElementById('videoSource');
+async function getAvailableDevices() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    devices.forEach(device => {
-        if (device.kind === 'videoinput') {
-            const option = document.createElement('option');
-            option.value = device.deviceId;
-            option.text = device.label || `Camera ${videoSelect.length + 1}`;
-            videoSelect.appendChild(option);
-        }
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    videoDevices.forEach(device => {
+        console.log(`Device: ${device.label}, ID: ${device.deviceId}`);
     });
-
-    videoSelect.onchange = setupWebcam;
-    await setupWebcam(); // Setup the default camera
+    return videoDevices;
 }
 
 async function setupWebcam() {
-    const videoSelect = document.getElementById('videoSource');
-    const deviceId = videoSelect.value;
+    console.log("Setting up webcam...");
 
+    // 列出可用设备并选择第一个
+    const videoDevices = await getAvailableDevices();
+    if (videoDevices.length === 0) {
+        alert("No video devices found.");
+        return;
+    }
+
+    // 停止当前的流
     if (currentStream) {
+        console.log("Stopping current stream...");
         currentStream.getTracks().forEach(track => track.stop());
+        await new Promise(resolve => setTimeout(resolve, 500)); // 延迟确保资源释放
+        currentStream = null;
     }
 
     const constraints = {
         video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
+            deviceId: { exact: videoDevices[0].deviceId }  // 使用第一个可用的摄像头
         }
     };
 
     try {
+        console.log("Getting new stream with constraints:", constraints);
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        await handleStream(currentStream);
+        console.log("New stream obtained:", currentStream);
+
+        if (webcam) {
+            console.log("Stopping previous webcam...");
+            await webcam.stop();
+        }
+
+        webcam = new tmImage.Webcam(200, 200, true);
+        await webcam.setup({ video: { stream: currentStream } });
+        await webcam.play();
+
+        isFrozen = false;
+        window.requestAnimationFrame(loop);
+
+        document.getElementById('webcam').innerHTML = '';
+        document.getElementById('webcam').appendChild(webcam.canvas);
+
+        document.getElementById('restore-btn').disabled = true;
     } catch (error) {
-        console.error("Error accessing media devices.", error);
+        console.error("Error accessing media devices:", error);
+        alert("Error accessing camera: " + error.message);
     }
-}
-
-async function handleStream(stream) {
-    currentStream = stream;
-
-    if (webcam) {
-        webcam.stop();
-    }
-
-    // Initialize webcam with the stream
-    webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-    await webcam.setup(); // Setup the webcam
-    await webcam.play(); // Start the webcam
-
-    isFrozen = false;
-    window.requestAnimationFrame(loop);
-
-    document.getElementById('webcam').innerHTML = '';
-    document.getElementById('webcam').appendChild(webcam.canvas);
-
-    document.getElementById('restore-btn').disabled = true; // Disable the restore button initially
 }
 
 async function loop() {
@@ -202,7 +194,6 @@ function displayInstructions(wasteType) {
     document.getElementById('instructions').innerText = instructions;
 }
 
-
 function addHistory(wasteType, confidence) {
     const timestamp = new Date().toLocaleString();
     history.unshift({ wasteType, confidence, timestamp }); // Add new entry at the beginning of the history array
@@ -227,9 +218,33 @@ function updateHistoryDisplay() {
     });
 }
 
-// Initialize the model and webcam when the page loads
-init();
+async function init() {
+    const modelURL = URL + 'model.json';
+    const metadataURL = URL + 'metadata.json';
+
+    // Load the model and metadata from Teachable Machine
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    // List available cameras and allow user to select one
+    const videoSelect = document.getElementById('videoSource');
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    devices.forEach(device => {
+        if (device.kind === 'videoinput') {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.text = device.label || `Camera ${videoSelect.length + 1}`;
+            videoSelect.appendChild(option);
+        }
+    });
+
+    videoSelect.onchange = setupWebcam;
+    await setupWebcam(); // Setup the default camera
+}
 
 // Set up the event listener for the classify and restore buttons
 document.getElementById('classify-btn').addEventListener('click', predict);
 document.getElementById('restore-btn').addEventListener('click', restoreWebcam);
+
+// Initialize everything when the page loads
+init();
