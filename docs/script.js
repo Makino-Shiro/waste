@@ -12,8 +12,15 @@ async function init() {
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // List available cameras and allow user to select one
+    await populateVideoSourceOptions();
+
+    await setupWebcam(); // Setup the default camera
+}
+
+async function populateVideoSourceOptions() {
     const videoSelect = document.getElementById('videoSource');
+    videoSelect.innerHTML = ''; // Clear previous options
+
     const devices = await navigator.mediaDevices.enumerateDevices();
     devices.forEach(device => {
         if (device.kind === 'videoinput') {
@@ -25,7 +32,6 @@ async function init() {
     });
 
     videoSelect.onchange = setupWebcam;
-    await setupWebcam(); // Setup the default camera
 }
 
 async function setupWebcam() {
@@ -51,6 +57,7 @@ async function setupWebcam() {
         await startWebcamStream(currentStream);
     } catch (error) {
         console.error("Error accessing media devices:", error);
+        alert("Failed to access the camera. Please ensure the browser has permission to use the camera.");
     }
 }
 
