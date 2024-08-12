@@ -19,6 +19,7 @@ body {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     max-width: 800px; /* 增加容器宽度 */
     width: 100%;
+    position: relative; /* 新增，确保footer的绝对定位相对于容器 */
 }
 
 h1 {
@@ -121,9 +122,9 @@ button:disabled {
     color: #666;
 }
 
-/* 修改后的footer样式，颜色改为白色 */
+/* 修改后的footer样式，颜色改为白色，绝对定位到容器右下角 */
 .footer {
-    position: fixed;
+    position: absolute;
     right: 10px;
     bottom: 10px;
     text-align: right;
