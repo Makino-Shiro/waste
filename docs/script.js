@@ -4,41 +4,32 @@ let history = [];
 let currentStream;
 let isFrozen = false;
 
-async function init() {
-    const modelURL = URL + 'model.json';
-    const metadataURL = URL + 'metadata.json';
-
-    // Load the model and metadata from Teachable Machine
-    model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
-
-    // List available cameras and allow user to select one
-    const videoSelect = document.getElementById('videoSource');
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    devices.forEach(device => {
-        if (device.kind === 'videoinput') {
-            const option = document.createElement('option');
-            option.value = device.deviceId;
-            option.text = device.label || `Camera ${videoSelect.length + 1}`;
-            videoSelect.appendChild(option);
-        }
-    });
-
-    videoSelect.onchange = setupWebcam;
-    await setupWebcam(); // Setup the default camera
+async function requestCameraPermissions() {
+    try {
+        // 嘗試請求攝像頭權限
+        await navigator.mediaDevices.getUserMedia({ video: true });
+    } catch (error) {
+        console.error("Camera access denied.", error);
+        return false;
+    }
+    return true;
 }
 
 async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
+    // 檢查是否已獲得攝像頭權限
+    const hasPermissions = await requestCameraPermissions();
+    if (!hasPermissions) {
+        alert("Unable to access the camera. Please allow camera access.");
+        return;
+    }
+
     // 停止當前的流
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
-
-    // 等待一段時間以確保流完全停止
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     // 設置攝像頭的約束條件
     const constraints = {
@@ -71,7 +62,6 @@ async function setupWebcam() {
         console.error("Error accessing media devices.", error);
     }
 }
-
 
 async function loop() {
     if (!isFrozen) {
