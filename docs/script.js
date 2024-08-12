@@ -32,50 +32,41 @@ async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
-    // 檢測是否是移動設備
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // 停止當前的流
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+    }
 
     // 設置攝像頭的約束條件
     const constraints = {
         video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : (isMobile ? { exact: 'environment' } : 'user') // 移動設備默認使用後置攝像頭，桌面設備使用前置
+            deviceId: deviceId ? { exact: deviceId } : undefined
         }
     };
 
     try {
-        // 停止當前的流
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-        }
-
         // 獲取新的流
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        await handleStream(currentStream);
+
+        // 確保每次初始化後重新設置 webcam
+        if (webcam) {
+            webcam.stop(); // 確保舊的 webcam 被停止
+        }
+
+        webcam = new tmImage.Webcam(200, 200, true);
+        await webcam.setup({ video: { stream: currentStream } });
+        await webcam.play(); // 開始播放新的流
+
+        isFrozen = false;
+        window.requestAnimationFrame(loop);
+
+        document.getElementById('webcam').innerHTML = '';
+        document.getElementById('webcam').appendChild(webcam.canvas);
+
+        document.getElementById('restore-btn').disabled = true;
     } catch (error) {
         console.error("Error accessing media devices.", error);
     }
-}
-
-async function handleStream(stream) {
-    currentStream = stream;
-
-    if (webcam) {
-        webcam.stop(); // 確保前一次的 webcam 被停止
-    }
-
-    // 初始化攝像頭流
-    webcam = new tmImage.Webcam(200, 200, true); // 設置 webcam 尺寸和是否翻轉
-    await webcam.setup({ video: { stream } }); // 設置 webcam 並傳入流
-    await webcam.play(); // 開始 webcam
-
-    isFrozen = false;
-    window.requestAnimationFrame(loop);
-
-    document.getElementById('webcam').innerHTML = '';
-    document.getElementById('webcam').appendChild(webcam.canvas);
-
-    document.getElementById('restore-btn').disabled = true; // 初始化禁用恢復按鈕
 }
 
 async function loop() {
@@ -207,7 +198,6 @@ function displayInstructions(wasteType) {
 
     document.getElementById('instructions').innerText = instructions;
 }
-
 
 function addHistory(wasteType, confidence) {
     const timestamp = new Date().toLocaleString();
