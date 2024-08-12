@@ -34,6 +34,7 @@ async function setupWebcam() {
     if (currentStream) {
         console.log("Stopping current stream...");
         currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
     }
 
     // 设置摄像头的约束条件
@@ -52,7 +53,7 @@ async function setupWebcam() {
         // 确保每次初始化后重新设置 webcam
         if (webcam) {
             console.log("Stopping previous webcam...");
-            webcam.stop(); // 确保旧的 webcam 被停止
+            await webcam.stop(); // 确保旧的 webcam 被停止
         }
 
         webcam = new tmImage.Webcam(200, 200, true);
@@ -68,7 +69,7 @@ async function setupWebcam() {
 
         document.getElementById('restore-btn').disabled = true;
     } catch (error) {
-        console.error("Error accessing media devices.", error);
+        console.error("Error accessing media devices:", error);
     }
 }
 
@@ -226,7 +227,6 @@ function updateHistoryDisplay() {
     });
 }
 
-// Initialize the model and webcam when the page loads
 async function init() {
     const modelURL = URL + 'model.json';
     const metadataURL = URL + 'metadata.json';
