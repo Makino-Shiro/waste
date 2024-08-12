@@ -6,7 +6,8 @@ let isFrozen = false;
 
 async function requestCameraPermissions() {
     try {
-        // 嘗試請求攝像頭權限
+        console.log("Requesting camera permissions...");
+        // 尝试请求摄像头权限
         await navigator.mediaDevices.getUserMedia({ video: true });
     } catch (error) {
         console.error("Camera access denied.", error);
@@ -16,22 +17,26 @@ async function requestCameraPermissions() {
 }
 
 async function setupWebcam() {
+    console.log("Setting up webcam...");
+
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
+    console.log("Selected device ID:", deviceId);
 
-    // 檢查是否已獲得攝像頭權限
+    // 检查是否已获得摄像头权限
     const hasPermissions = await requestCameraPermissions();
     if (!hasPermissions) {
         alert("Unable to access the camera. Please allow camera access.");
         return;
     }
 
-    // 停止當前的流
+    // 停止当前的流
     if (currentStream) {
+        console.log("Stopping current stream...");
         currentStream.getTracks().forEach(track => track.stop());
     }
 
-    // 設置攝像頭的約束條件
+    // 设置摄像头的约束条件
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined
@@ -39,17 +44,21 @@ async function setupWebcam() {
     };
 
     try {
-        // 獲取新的流
+        console.log("Getting new stream with constraints:", constraints);
+        // 获取新的流
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log("New stream obtained:", currentStream);
 
-        // 確保每次初始化後重新設置 webcam
+        // 确保每次初始化后重新设置 webcam
         if (webcam) {
-            webcam.stop(); // 確保舊的 webcam 被停止
+            console.log("Stopping previous webcam...");
+            webcam.stop(); // 确保旧的 webcam 被停止
         }
 
         webcam = new tmImage.Webcam(200, 200, true);
         await webcam.setup({ video: { stream: currentStream } });
-        await webcam.play(); // 開始播放新的流
+        await webcam.play(); // 开始播放新的流
+        console.log("Webcam is now playing.");
 
         isFrozen = false;
         window.requestAnimationFrame(loop);
@@ -218,8 +227,33 @@ function updateHistoryDisplay() {
 }
 
 // Initialize the model and webcam when the page loads
-init();
+async function init() {
+    const modelURL = URL + 'model.json';
+    const metadataURL = URL + 'metadata.json';
+
+    // Load the model and metadata from Teachable Machine
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    // List available cameras and allow user to select one
+    const videoSelect = document.getElementById('videoSource');
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    devices.forEach(device => {
+        if (device.kind === 'videoinput') {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.text = device.label || `Camera ${videoSelect.length + 1}`;
+            videoSelect.appendChild(option);
+        }
+    });
+
+    videoSelect.onchange = setupWebcam;
+    await setupWebcam(); // Setup the default camera
+}
 
 // Set up the event listener for the classify and restore buttons
 document.getElementById('classify-btn').addEventListener('click', predict);
 document.getElementById('restore-btn').addEventListener('click', restoreWebcam);
+
+// Initialize everything when the page loads
+init();
