@@ -12,15 +12,8 @@ async function init() {
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    await populateVideoSourceOptions();
-
-    await setupWebcam(); // Setup the default camera
-}
-
-async function populateVideoSourceOptions() {
+    // List available cameras and allow user to select one
     const videoSelect = document.getElementById('videoSource');
-    videoSelect.innerHTML = ''; // Clear previous options
-
     const devices = await navigator.mediaDevices.enumerateDevices();
     devices.forEach(device => {
         if (device.kind === 'videoinput') {
@@ -32,13 +25,13 @@ async function populateVideoSourceOptions() {
     });
 
     videoSelect.onchange = setupWebcam;
+    await setupWebcam(); // Setup the default camera
 }
 
 async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
-    // Stop any existing video stream
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
@@ -46,32 +39,29 @@ async function setupWebcam() {
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: deviceId ? undefined : 'environment' // Prefer rear camera on mobile devices if no device selected
+            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
         }
     };
 
     try {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        await startWebcamStream(currentStream);
+        await handleStream(currentStream);
     } catch (error) {
-        console.error("Error accessing media devices:", error);
-        alert("Failed to access the camera. Please ensure the browser has permission to use the camera.");
+        console.error("Error accessing media devices.", error);
     }
 }
 
-async function startWebcamStream(stream) {
+async function handleStream(stream) {
     currentStream = stream;
 
-    if (!webcam) {
-        // Initialize webcam only once
-        webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-        await webcam.setup();
+    if (webcam) {
+        webcam.stop();
     }
 
-    webcam.canvas.srcObject = stream;
-    await webcam.play();
+    // Initialize webcam with the stream
+    webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
+    await webcam.setup(); // Setup the webcam
+    await webcam.play(); // Start the webcam
 
     isFrozen = false;
     window.requestAnimationFrame(loop);
@@ -84,7 +74,7 @@ async function startWebcamStream(stream) {
 
 async function loop() {
     if (!isFrozen) {
-        await webcam.update(); // Update the webcam frame only if not frozen
+        webcam.update(); // Update the webcam frame only if not frozen
         window.requestAnimationFrame(loop);
     }
 }
