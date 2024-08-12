@@ -32,20 +32,23 @@ async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
-    // 停止當前的流
-    if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-    }
+    // 檢測是否是移動設備
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     // 設置攝像頭的約束條件
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : 'environment' // 預設為後置攝像頭
+            facingMode: deviceId ? undefined : (isMobile ? { exact: 'environment' } : 'user') // 移動設備默認使用後置攝像頭，桌面設備使用前置
         }
     };
 
     try {
+        // 停止當前的流
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+
         // 獲取新的流
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         await handleStream(currentStream);
@@ -74,7 +77,6 @@ async function handleStream(stream) {
 
     document.getElementById('restore-btn').disabled = true; // 初始化禁用恢復按鈕
 }
-
 
 async function loop() {
     if (!isFrozen) {
