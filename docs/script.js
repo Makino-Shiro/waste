@@ -32,18 +32,21 @@ async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
+    // 停止當前的流
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
 
+    // 設置攝像頭的約束條件
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
+            facingMode: deviceId ? undefined : 'environment' // 預設為後置攝像頭
         }
     };
 
     try {
+        // 獲取新的流
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         await handleStream(currentStream);
     } catch (error) {
@@ -55,13 +58,13 @@ async function handleStream(stream) {
     currentStream = stream;
 
     if (webcam) {
-        webcam.stop();
+        webcam.stop(); // 確保前一次的 webcam 被停止
     }
 
-    // Initialize webcam with the stream
-    webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-    await webcam.setup(); // Setup the webcam
-    await webcam.play(); // Start the webcam
+    // 初始化攝像頭流
+    webcam = new tmImage.Webcam(200, 200, true); // 設置 webcam 尺寸和是否翻轉
+    await webcam.setup({ video: { stream } }); // 設置 webcam 並傳入流
+    await webcam.play(); // 開始 webcam
 
     isFrozen = false;
     window.requestAnimationFrame(loop);
@@ -69,8 +72,9 @@ async function handleStream(stream) {
     document.getElementById('webcam').innerHTML = '';
     document.getElementById('webcam').appendChild(webcam.canvas);
 
-    document.getElementById('restore-btn').disabled = true; // Disable the restore button initially
+    document.getElementById('restore-btn').disabled = true; // 初始化禁用恢復按鈕
 }
+
 
 async function loop() {
     if (!isFrozen) {
