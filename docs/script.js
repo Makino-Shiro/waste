@@ -239,3 +239,4 @@ init();
 // 設置分類和恢復按鈕的事件監聽器
 document.getElementById('classify-btn').addEventListener('click', predict);
 document.getElementById('restore-btn').addEventListener('click', restoreWebcam);
+
