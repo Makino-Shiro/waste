@@ -32,6 +32,7 @@ async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
+    // Stop all current streams to ensure the new camera stream can be accessed
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
@@ -39,7 +40,9 @@ async function setupWebcam() {
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            facingMode: deviceId ? undefined : 'environment' // Default to rear camera if no specific device selected
+            width: { ideal: 1280 }, // Optional: set desired width
+            height: { ideal: 720 }, // Optional: set desired height
+            facingMode: deviceId ? undefined : 'environment' // Prefer rear camera on mobile devices if no device selected
         }
     };
 
@@ -47,7 +50,7 @@ async function setupWebcam() {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         await handleStream(currentStream);
     } catch (error) {
-        console.error("Error accessing media devices.", error);
+        console.error("Error accessing media devices:", error);
     }
 }
 
