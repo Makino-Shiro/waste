@@ -3,6 +3,7 @@ let model, webcam, maxPredictions;
 let history = [];
 let currentStream;
 let isFrozen = false;
+let isCameraSetup = false; // 新增變量以防止多次設置攝像頭
 
 async function init() {
     const modelURL = URL + 'model.json';
@@ -29,6 +30,10 @@ async function init() {
 }
 
 async function setupWebcam() {
+    if (isCameraSetup) {
+        return; // 如果攝像頭已經設置，不再重新設置
+    }
+
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
@@ -46,6 +51,7 @@ async function setupWebcam() {
     try {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         await handleStream(currentStream);
+        isCameraSetup = true; // 攝像頭設置完成
     } catch (error) {
         console.error("Error accessing media devices.", error);
         alert("無法訪問相機。請檢查許可權或嘗試使用不同的瀏覽器。");
