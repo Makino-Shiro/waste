@@ -32,7 +32,7 @@ async function setupWebcam() {
     const videoSelect = document.getElementById('videoSource');
     const deviceId = videoSelect.value;
 
-    // Stop all current streams to ensure the new camera stream can be accessed
+    // Stop any existing video stream
     if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
@@ -40,31 +40,31 @@ async function setupWebcam() {
     const constraints = {
         video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { ideal: 1280 }, // Optional: set desired width
-            height: { ideal: 720 }, // Optional: set desired height
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
             facingMode: deviceId ? undefined : 'environment' // Prefer rear camera on mobile devices if no device selected
         }
     };
 
     try {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        await handleStream(currentStream);
+        await startWebcamStream(currentStream);
     } catch (error) {
         console.error("Error accessing media devices:", error);
     }
 }
 
-async function handleStream(stream) {
+async function startWebcamStream(stream) {
     currentStream = stream;
 
-    if (webcam) {
-        webcam.stop();
+    if (!webcam) {
+        // Initialize webcam only once
+        webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
+        await webcam.setup();
     }
 
-    // Initialize webcam with the stream
-    webcam = new tmImage.Webcam(200, 200, true); // width, height, flip
-    await webcam.setup(); // Setup the webcam
-    await webcam.play(); // Start the webcam
+    webcam.canvas.srcObject = stream;
+    await webcam.play();
 
     isFrozen = false;
     window.requestAnimationFrame(loop);
@@ -77,7 +77,7 @@ async function handleStream(stream) {
 
 async function loop() {
     if (!isFrozen) {
-        webcam.update(); // Update the webcam frame only if not frozen
+        await webcam.update(); // Update the webcam frame only if not frozen
         window.requestAnimationFrame(loop);
     }
 }
