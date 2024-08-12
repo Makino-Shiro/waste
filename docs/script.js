@@ -37,6 +37,9 @@ async function setupWebcam() {
         currentStream.getTracks().forEach(track => track.stop());
     }
 
+    // 等待一段時間以確保流完全停止
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // 設置攝像頭的約束條件
     const constraints = {
         video: {
@@ -68,6 +71,7 @@ async function setupWebcam() {
         console.error("Error accessing media devices.", error);
     }
 }
+
 
 async function loop() {
     if (!isFrozen) {
