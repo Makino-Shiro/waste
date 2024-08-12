@@ -30,7 +30,7 @@ async function setupWebcam() {
 
     try {
         window.stream = await navigator.mediaDevices.getUserMedia(constraints);
-        const videoElement = document.getElementById('webcam');
+        const videoElement = document.getElementById('video'); // 確保將 stream 設置到 video 元素
         videoElement.srcObject = window.stream;
     } catch (error) {
         console.error("Error accessing media devices.", error);
