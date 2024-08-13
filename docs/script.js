@@ -69,7 +69,22 @@ async function init() {
     maxPredictions = model.getTotalClasses();
 
     // 初始化攝影機
-    initCamera();
+    await initCamera();
+}
+
+// 初始化攝影機
+function initCamera() {
+    return getCameraDevices()
+        .then(videoDevices => {
+            if (videoDevices.length === 0) {
+                console.error('No video devices found.');
+                return;
+            }
+            return startCamera(videoDevices[0].deviceId);
+        })
+        .catch(error => {
+            console.error('Error during initialization.', error);
+        });
 }
 
 // 循環更新畫面
