@@ -4,7 +4,6 @@ const switchCameraButton = document.getElementById('switch-camera');
 
 let currentStream;
 
-// 停止現有的媒體流
 function stopMediaTracks(stream) {
     if (stream) {
         stream.getTracks().forEach(track => {
@@ -13,7 +12,6 @@ function stopMediaTracks(stream) {
     }
 }
 
-// 獲取可用的攝影機列表並填充到下拉選單中
 function getCameraDevices() {
     return navigator.mediaDevices.enumerateDevices()
         .then(devices => {
@@ -22,7 +20,6 @@ function getCameraDevices() {
         });
 }
 
-// 啟動攝影機流
 function startCamera(deviceId) {
     const constraints = {
         video: {
@@ -55,7 +52,6 @@ function startCamera(deviceId) {
         });
 }
 
-// 初始化攝影機
 function initCamera() {
     getCameraDevices()
         .then(videoDevices => {
@@ -70,12 +66,10 @@ function initCamera() {
         });
 }
 
-// 監聽下拉選單的變化以切換攝影機
 videoSelect.addEventListener('change', () => {
     startCamera(videoSelect.value);
 });
 
-// 監聽切換攝影機按鈕的點擊事件
 switchCameraButton.addEventListener('click', () => {
     getCameraDevices()
         .then(videoDevices => {
@@ -93,5 +87,4 @@ switchCameraButton.addEventListener('click', () => {
         });
 });
 
-// 當頁面加載完成後初始化攝影機
 document.addEventListener('DOMContentLoaded', initCamera);
