@@ -50,11 +50,14 @@ select {
     width: 48%; /* 两边各占容器的一半 */
 }
 
+/* 保持現有的 CSS */
 video {
-    width: 100%;
+    width: 100%; /* 讓 video 元素佔滿容器的寬度 */
+    height: auto; /* 保持高度自適應 */
     border-radius: 10px;
     margin-bottom: 10px;
 }
+
 
 .buttons {
     margin-top: 20px;
