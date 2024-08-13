@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Classifier</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <h1>Waste Classification</h1>
+        <label for="videoSource">選擇攝影機：</label>
+        <select id="videoSource"></select>
+        <button id="switch-camera">切換攝影機</button>
+
+        <div class="content">
+            <div class="left-panel">
+                <video id="webcam" autoplay playsinline></video>
+                <div class="buttons">
+                    <button id="classify-btn">Classify Waste</button>
+                    <button id="pause-btn" disabled>Pause</button>
+                </div>
+                <div id="result"></div>
+                <div id="history-container">
+                    <h2>History</h2>
+                    <div id="history"></div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div id="info">
+                    <h2 id="waste-type">Waste Type: None</h2>
+                    <h3>處理方式：</h3>
+                    <p id="instructions">Select an item to see instructions.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>背景：日月潭</span>
+            <span>最後更新日期：2024/08/13/05:53</span>
+            <span>主網站：<a href="https://zergling73.com" target="_blank">zergling73.com</a></span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
