@@ -52,10 +52,10 @@ async function setupWebcam() {
             await handleStream(currentStream);
         } catch (error) {
             console.error("無法訪問相機，請檢查設備權限或相機設置。", error);
-            alert("無法訪問相機，請檢查設備權限或相機設置。");
+            alert("無法訪問相機，請檢查設備權限或相機設置QaQ。");
         }
     } else {
-        document.getElementById('webcam').innerHTML = '<p>請選擇一個相機來啟用視頻。</p>';
+        document.getElementById('webcam').innerHTML = '<p>請選擇一個相機來啟用畫面OwO</p>';
     }
 }
 
@@ -204,7 +204,7 @@ function displayInstructions(wasteType) {
                 '液態廢料如電鍍液可經回收處理，減少環境汙染。';
             break;
         default:
-            instructions = '請選擇一個垃圾類別以查看正確的回收處理方式。';
+            instructions = '肯定還有114514種回收方式';
     }
 
     document.getElementById('instructions').innerText = instructions;
@@ -229,7 +229,7 @@ function updateHistoryDisplay() {
     history.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
-        historyItem.innerHTML = `${index + 1}. ${entry.timestamp} - ${entry.wasteType}(${entry.confidence}%信賴度)`;
+        historyItem.innerHTML = `${index + 1}. ${entry.timestamp} - ${entry.wasteType}(${entry.confidence}%信賴度>w<)`;
         historyElement.appendChild(historyItem); // 將每個紀錄項目附加到歷史紀錄容器
     });
 }
