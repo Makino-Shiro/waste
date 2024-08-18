@@ -260,11 +260,12 @@ function updateHistoryDisplay() {
 
     historyElement.innerHTML = ''; // 清除之前的紀錄
 
-    // 遍歷歷史紀錄陣列並顯示每個項目
+    // 按照紀錄的順序顯示每個項目
     history.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
-        historyItem.innerHTML = `${index + 1}. ${entry.timestamp} - ${entry.wasteType} (${entry.confidence}%信賴度)`;
+        // 使用原始的順序編號顯示歷史紀錄
+        historyItem.innerHTML = `${history.length - index}. ${entry.timestamp} - ${entry.wasteType} (${entry.confidence}%信賴度)`;
         historyElement.appendChild(historyItem);
     });
 }
