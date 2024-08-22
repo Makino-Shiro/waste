@@ -183,6 +183,7 @@ function displayInstructions(wasteType) {
                 '3. 7-11或全家便利商店回收電池、光碟、筆電、手機等，並可換取購物抵用金。\n' +
                 '4. 前往販賣場所的回收點，如NOVA、燦坤等。\n' +
                 '5. 聯絡或上網查詢當地環保局了解回收細節，或聯絡資源回收場處理。';
+                '6. 手機平板等電子產品，可以洽通訊行回收，或參考部分手機廠商的舊換折抵。';
             break;
         case '布料':
             instructions = 
@@ -193,7 +194,7 @@ function displayInstructions(wasteType) {
                 '1. 減少購買\n' +
                 '2. 用租借代替購買\n' +
                 '3. 舊衣改造\n' +
-                '4. 二手衣再利用';
+                '4. 可將舊手套、毛巾等變成抹布或擦鞋布';
             break;
         case '塑料':
             instructions = 
