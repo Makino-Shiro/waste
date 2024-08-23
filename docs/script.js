@@ -103,7 +103,7 @@ async function predict() {
     const confidence = (maxPrediction.probability * 100).toFixed(2); // 將置信度轉換為百分比並保留兩位小數
 
     // 顯示預測結果
-    document.getElementById('result').innerHTML = `這是「<span class="highlight">${wasteType}</span>」(${confidence}%信賴度)`;
+    document.getElementById('result').innerHTML = `這是「<span class="highlight">${wasteType}</span>」(${confidence}%置信度)`;
 
     // 更新右側面板的垃圾類型
     document.getElementById('waste-type').innerText = `Waste Type: ${wasteType}`;
@@ -266,7 +266,7 @@ function updateHistoryDisplay() {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
         // 使用原始的順序編號顯示歷史紀錄
-        historyItem.innerHTML = `${history.length - index}. ${entry.timestamp} - ${entry.wasteType} (${entry.confidence}%信賴度)`;
+        historyItem.innerHTML = `${history.length - index}. ${entry.timestamp} - ${entry.wasteType} (${entry.confidence}%置信度)`;
         historyElement.appendChild(historyItem);
     });
 }
