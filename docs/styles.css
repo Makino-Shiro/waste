@@ -5,10 +5,10 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-image: url('wallpaper.jpg'); /* 设置背景图片 */
-    background-size: cover; /* 使背景图片覆盖整个页面 */
-    background-position: center; /* 使背景图片居中 */
-    background-repeat: no-repeat; /* 禁止背景图片重复 */
+    background-image: url('wallpaper.jpg'); /* 背景圖片 */
+    background-size: cover; /* 背景圖覆蓋整個介面 */
+    background-position: center; /* 背景圖居中 */
+    background-repeat: no-repeat; /* 禁止背景圖重復 */
 }
 
 .container {
@@ -47,7 +47,7 @@ select {
 }
 
 .left-panel, .right-panel {
-    width: 48%; /* 两边各占容器的一半 */
+    width: 48%; /* 兩邊各占容器的一半 */
 }
 
 video {
@@ -93,7 +93,7 @@ button:disabled {
 
 #waste-type {
     font-size: 1.5em;
-    color: #d9534f; /* 使垃圾种类醒目 */
+    color: #d9534f; /* highlight垃圾種類 */
     margin-bottom: 10px;
 }
 
@@ -127,14 +127,14 @@ button:disabled {
 
 .footer {
     display: flex;
-    justify-content: space-between; /* 分布在容器的两端 */
-    font-size: 0.8em; /* 小字号 */
+    justify-content: space-between; /* 分布在容器的兩端 */
+    font-size: 0.8em; /* 小字 */
     color: #666; /* 灰色文本 */
     margin-top: 20px;
 }
 
 .footer span {
-    white-space: nowrap; /* 防止文字换行 */
+    white-space: nowrap; /* 防止文字換行 */
 }
 
 .footer a {
@@ -148,5 +148,5 @@ button:disabled {
 
 /* New style for highlighted waste type */
 .highlight {
-    color: #007bff; /* 蓝色文本 */
+    color: #007bff; /* 藍色文本 */
 }
